@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../theme/app_theme.dart';
+import 'movie_detail_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/movie.dart';
 import '../services/watchlist_service.dart';
-import 'home_screen.dart';
+
 
 class WatchlistScreen extends StatefulWidget {
   const WatchlistScreen({super.key});
@@ -261,7 +264,9 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
   }
 
   Widget _buildWatchlistCard(Movie movie) {
-    return Container(
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MovieDetailScreen(imdbId: movie.imdbId))),
+      child: Container(
       decoration: BoxDecoration(
         color: AppColors.cardSurface,
         borderRadius: BorderRadius.circular(22),
@@ -293,31 +298,19 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
               child: SizedBox(
                 width: double.infinity,
                 child: movie.poster.isNotEmpty && movie.poster != 'N/A'
-                    ? Image.network(
-                        movie.poster,
+                    ? CachedNetworkImage(
+                        imageUrl: movie.poster,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[300],
-                            child: Icon(
-                              Icons.movie,
-                              size: 50,
-                              color: Colors.grey[500],
-                            ),
-                          );
-                        },
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            color: Colors.grey[300],
-                            child: const Center(
-                              child: CircularProgressIndicator(
-                                color: AppColors.accent,
-                                strokeWidth: 2,
-                              ),
-                            ),
-                          );
-                        },
+                        placeholder: (context, url) => Container(
+                          color: AppColors.secondarySurface,
+                          child: const Center(
+                            child: CircularProgressIndicator(color: AppColors.accent, strokeWidth: 2,),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: AppColors.secondarySurface,
+                          child: Icon(Icons.movie, size: 50, color: Colors.grey[500]),
+                        ),
                       )
                     : Container(
                         color: Colors.grey[300],
@@ -385,6 +378,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

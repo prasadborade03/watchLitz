@@ -348,7 +348,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontSize: 14,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Search kr for a Content.',
+                        hintText: 'Search for movies...',
                         hintStyle: GoogleFonts.aBeeZee(
                           color: Colors.grey[600],
                           fontSize: 14,
