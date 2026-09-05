@@ -1,11 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/movie.dart';
 
 class OmdbService {
-  // Note: Users should replace this with their own API key from http://www.omdbapi.com/apikey.aspx
-  // Free tier allows 1000 daily requests
-  static const String _apiKey = '26800e73';
+  static final String _apiKey = dotenv.env['OMDB_API_KEY'] ?? '';
   static const String _baseUrl = 'https://www.omdbapi.com';
 
   /// Search for movies by title
