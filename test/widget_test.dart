@@ -1,20 +1,16 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:movie_watchlist_app/main.dart';
 
 void main() {
   testWidgets('App loads successfully', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MovieWatchlistApp());
+    dotenv.testLoad(fileInput: '''OMDB_API_KEY=test''');
+    SharedPreferences.setMockInitialValues({});
 
-    // Verify that the app title is displayed
-    expect(find.text('Movie Watchlist'), findsOneWidget);
+    await tester.pumpWidget(const MovieWatchlistApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Search for movies...'), findsOneWidget);
   });
 }
