@@ -1,3 +1,15 @@
+/// Enum representing the state of a movie in the watchlist context
+enum MovieWatchState {
+  /// Movie is not in any list (shown in search results with "ADD" button)
+  notInList,
+
+  /// Movie is saved but not watched (red minus icon, "Mark as Watched" button)
+  toWatch,
+
+  /// Movie has been watched (green checkmark, "Unmark" button)
+  watched,
+}
+
 class Movie {
   final String imdbId;
   final String title;
@@ -20,10 +32,8 @@ class Movie {
   final String? awards;
   final String? rated;
 
-  // Watchlist-specific personal fields
+  // Watchlist-specific fields
   bool isWatched;
-  double? personalRating;
-  String? personalNotes;
   DateTime? dateAdded;
 
   Movie({
@@ -46,8 +56,6 @@ class Movie {
     this.awards,
     this.rated,
     this.isWatched = false,
-    this.personalRating,
-    this.personalNotes,
     DateTime? dateAdded,
   }) : dateAdded = dateAdded ?? DateTime.now();
 
@@ -108,10 +116,6 @@ class Movie {
       awards: json['Awards'],
       rated: json['Rated'],
       isWatched: json['isWatched'] ?? false,
-      personalRating: json['personalRating'] != null
-          ? (json['personalRating'] as num).toDouble()
-          : null,
-      personalNotes: json['personalNotes'],
       dateAdded: json['dateAdded'] != null
           ? DateTime.tryParse(json['dateAdded'])
           : null,
@@ -140,8 +144,6 @@ class Movie {
       'Awards': awards,
       'Rated': rated,
       'isWatched': isWatched,
-      'personalRating': personalRating,
-      'personalNotes': personalNotes,
       'dateAdded': dateAdded?.toIso8601String(),
     };
   }
@@ -167,8 +169,6 @@ class Movie {
     String? awards,
     String? rated,
     bool? isWatched,
-    double? personalRating,
-    String? personalNotes,
     DateTime? dateAdded,
   }) {
     return Movie(
@@ -191,8 +191,6 @@ class Movie {
       awards: awards ?? this.awards,
       rated: rated ?? this.rated,
       isWatched: isWatched ?? this.isWatched,
-      personalRating: personalRating ?? this.personalRating,
-      personalNotes: personalNotes ?? this.personalNotes,
       dateAdded: dateAdded ?? this.dateAdded,
     );
   }
@@ -209,11 +207,8 @@ class Movie {
     return double.tryParse(imdbRating!);
   }
 
-  /// Parse personal rating as display string (e.g., "7.5")
-  String? get personalRatingDisplay {
-    if (personalRating == null) return null;
-    return personalRating!.toStringAsFixed(1);
-  }
+  /// Check if poster is in watchlist context (used by the card)
+  /// This is determined externally by checking against the watchlist, not stored on the model.
 
   @override
   bool operator ==(Object other) {

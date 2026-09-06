@@ -3,17 +3,18 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/movie.dart';
 import '../theme/app_theme.dart';
 import 'movie_poster.dart';
-import 'rating_badge.dart';
 
-/// Unified movie card widget with poster, title, year, IMDb rating badge,
-/// optional watched indicator, and add/remove button
+/// Unified movie card widget supporting 4 states:
+/// - NOT IN LIST: Shows "ADD" button (search results)
+/// - TO WATCH: Red minus icon, "Mark as Watched" button
+/// - WATCHED: Green checkmark icon, "Unmark" button
 class MovieCard extends StatelessWidget {
   final Movie movie;
   final bool isInWatchlist;
   final VoidCallback? onTap;
   final VoidCallback? onAdd;
   final VoidCallback? onRemove;
-  final bool showWatchedBadge;
+  final VoidCallback? onToggleWatched;
 
   const MovieCard({
     super.key,
@@ -22,7 +23,7 @@ class MovieCard extends StatelessWidget {
     this.onTap,
     this.onAdd,
     this.onRemove,
-    this.showWatchedBadge = false,
+    this.onToggleWatched,
   });
 
   @override
@@ -49,7 +50,7 @@ class MovieCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Poster area
+            // Poster area with state indicator
             Expanded(
               flex: 4,
               child: Stack(
@@ -61,38 +62,9 @@ class MovieCard extends StatelessWidget {
                     borderRadius: 22,
                     width: double.infinity,
                   ),
-                  // IMDb Rating badge
-                  if (movie.imdbRating != null && movie.imdbRating != 'N/A')
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: RatingBadge(rating: movie.imdbRating),
-                    ),
-                  // Watched badge
-                  if (showWatchedBadge && movie.isWatched)
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF4CAF50),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.3),
-                              offset: const Offset(1, 1),
-                              blurRadius: 3,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                      ),
-                    ),
+                  // State icon - TOP LEFT CORNER
+                  if (isInWatchlist) _buildStateIcon(),
+
                 ],
               ),
             ),
@@ -104,6 +76,7 @@ class MovieCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Title
                     Text(
                       movie.title,
                       maxLines: 1,
@@ -115,18 +88,11 @@ class MovieCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      movie.year,
-                      style: GoogleFonts.aBeeZee(
-                        color: const Color(0xFF777777),
-                        fontSize: 12,
-                      ),
-                    ),
+                    // Year • IMDB Rating row
+                    _buildYearAndRatingRow(),
                     const Spacer(),
-                    // Add/Remove button
-                    isInWatchlist
-                        ? _buildRemoveButton()
-                        : _buildAddButton(),
+                    // Contextual action button
+                    _buildActionButton(),
                   ],
                 ),
               ),
@@ -137,12 +103,81 @@ class MovieCard extends StatelessWidget {
     );
   }
 
+  /// State icon displayed on the top-left of the poster.
+  /// Wrapped in GestureDetector with HitTestBehavior.opaque so taps
+  /// are consumed by the icon and don't bubble up to the card's onTap.
+  Widget _buildStateIcon() {
+    final Widget icon = Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: movie.isWatched ? const Color(0xFF4CAF50) : Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            offset: const Offset(1, 1),
+            blurRadius: 3,
+          ),
+        ],
+      ),
+      child: movie.isWatched
+          ? const Icon(Icons.check, color: Colors.white, size: 16)
+          : const SizedBox(
+              width: 14,
+              height: 3,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Color(0xFFE53935),
+                  borderRadius: BorderRadius.all(Radius.circular(2)),
+                ),
+              ),
+            ),
+    );
+
+    return Positioned(
+      top: 8,
+      left: 8,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onRemove,
+        child: icon,
+      ),
+    );
+  }
+
+  /// Year displayed on card
+  Widget _buildYearAndRatingRow() {
+    final hasYear = movie.year.isNotEmpty && movie.year != 'N/A';
+    if (!hasYear) return const SizedBox.shrink();
+
+    return Text(
+      movie.year,
+      style: GoogleFonts.aBeeZee(
+        color: const Color(0xFF777777),
+        fontSize: 12,
+      ),
+    );
+  }
+
+  /// Contextual action button based on movie state
+  Widget _buildActionButton() {
+    if (!isInWatchlist) {
+      // STATE 1: ADD - Not in watchlist
+      return _buildAddButton();
+    } else if (movie.isWatched) {
+      // STATE 3: WATCHED - Green checkmark, "Unmark" button
+      return _buildUnmarkButton();
+    } else {
+      // STATE 2: TO WATCH - Red minus, "Mark as Watched" button
+      return _buildMarkWatchedButton();
+    }
+  }
+
+  /// STATE 1: ADD button for search results
   Widget _buildAddButton() {
     return GestureDetector(
       onTap: onAdd,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+      child: Container(
         height: 34,
         width: double.infinity,
         decoration: BoxDecoration(
@@ -160,7 +195,41 @@ class MovieCard extends StatelessWidget {
         ),
         child: Center(
           child: Text(
-            'ADD TO WATCHLIST',
+            'ADD',
+            style: GoogleFonts.aBeeZee(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// STATE 2: "Mark as Watched" button for To Watch movies
+  Widget _buildMarkWatchedButton() {
+    return GestureDetector(
+      onTap: onToggleWatched,
+      child: Container(
+        height: 34,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(34),
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFF6B35), Color(0xFFFF5A1F)],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              offset: const Offset(2, 2),
+              blurRadius: 4,
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            'Mark as Watched',
             style: GoogleFonts.aBeeZee(
               color: Colors.white,
               fontSize: 11,
@@ -172,25 +241,27 @@ class MovieCard extends StatelessWidget {
     );
   }
 
-  Widget _buildRemoveButton() {
+  /// STATE 3: "Unmark" button for Watched movies
+  Widget _buildUnmarkButton() {
     return GestureDetector(
-      onTap: onRemove,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+      onTap: onToggleWatched,
+      child: Container(
         height: 34,
         width: double.infinity,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(34),
           color: Colors.transparent,
-          border: Border.all(color: AppColors.accent, width: 1.5),
+          border: Border.all(
+            color: const Color(0xFF4CAF50),
+            width: 1.5,
+          ),
         ),
         child: Center(
           child: Text(
-            'REMOVE',
+            'Unmark',
             style: GoogleFonts.aBeeZee(
-              color: AppColors.accent,
-              fontSize: 11,
+              color: const Color(0xFF4CAF50),
+              fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
           ),

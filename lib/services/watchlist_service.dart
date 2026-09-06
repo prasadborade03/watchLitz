@@ -60,7 +60,7 @@ class WatchlistService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Get all movies from the watchlist (legacy async method)
+  /// Get all movies from the watchlist
   Future<List<Movie>> getWatchlist() async {
     await _initPrefs();
 
@@ -103,7 +103,7 @@ class WatchlistService extends ChangeNotifier {
     return true;
   }
 
-  /// Update a movie in the watchlist (for personal rating, notes, watched status)
+  /// Update a movie in the watchlist
   Future<void> updateMovie(Movie updatedMovie) async {
     await _initPrefs();
 
@@ -122,26 +122,6 @@ class WatchlistService extends ChangeNotifier {
     final index = _watchlist.indexWhere((m) => m.imdbId == imdbId);
     if (index != -1) {
       _watchlist[index].isWatched = !_watchlist[index].isWatched;
-      await _persist();
-      notifyListeners();
-    }
-  }
-
-  /// Update personal rating for a movie
-  Future<void> updatePersonalRating(String imdbId, double? rating) async {
-    final index = _watchlist.indexWhere((m) => m.imdbId == imdbId);
-    if (index != -1) {
-      _watchlist[index].personalRating = rating;
-      await _persist();
-      notifyListeners();
-    }
-  }
-
-  /// Update personal notes for a movie
-  Future<void> updatePersonalNotes(String imdbId, String? notes) async {
-    final index = _watchlist.indexWhere((m) => m.imdbId == imdbId);
-    if (index != -1) {
-      _watchlist[index].personalNotes = notes;
       await _persist();
       notifyListeners();
     }

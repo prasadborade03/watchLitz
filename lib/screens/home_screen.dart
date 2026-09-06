@@ -208,6 +208,23 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _toggleWatched(Movie movie) async {
+    await _watchlistService.toggleWatched(movie.imdbId);
+    if (mounted) {
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            movie.isWatched ? '"${movie.title}" marked as unwatched' : '"${movie.title}" marked as watched',
+            style: GoogleFonts.aBeeZee(),
+          ),
+          backgroundColor: AppColors.secondarySurface,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   void _showFilterSheet() {
     showModalBottomSheet(
       context: context,
@@ -387,8 +404,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Align(
                     alignment: const AlignmentDirectional(-1, -1),
                     child: Text(
-                      'Your personal movie watchlist. Track the films you want to watch and rate them after.',
-                      style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.black, fontSize: 10, letterSpacing: 0.0),
+                      'Your personal movie watchlist. Track the films you want to watch.',
+                      style: GoogleFonts.aBeeZee(fontWeight: FontWeight.w400, color: Colors.grey[600], fontSize: 13, letterSpacing: 0.0),
                     ),
                   ),
                 ),
@@ -546,6 +563,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ).then((_) => _loadWatchlistIds()),
               onAdd: () => _addToWatchlist(movie),
               onRemove: () => _removeFromWatchlist(movie),
+              onToggleWatched: () => _toggleWatched(movie),
             );
           }, childCount: _searchResults.length),
         ),
@@ -685,7 +703,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(7),
-                    child: Image.asset('assets/images/cine_icon.png', fit: BoxFit.contain),
+                    child: const Icon(Icons.movie, color: Colors.white, size: 26),
                   ),
                 ),
                 Container(
