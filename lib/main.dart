@@ -1,9 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/home_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
-  await dotenv.load(fileName: ".env");
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables - supports both OMDB_API_KEY and OMDb_API_KEY
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    debugPrint('Warning: Could not load .env file. '
+        'Create a .env file with your OMDb API key. '
+        'See .env.example for instructions.');
+  }
+
+  // Pre-initialize SharedPreferences
+  await SharedPreferences.getInstance();
+
   runApp(const MovieWatchlistApp());
 }
 
@@ -13,21 +28,9 @@ class MovieWatchlistApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Movie Watchlist',
+      title: 'WatchLitz',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0A0A0A),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF0A0A0A),
-          elevation: 0,
-          centerTitle: true,
-        ),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFFFF5A1F),
-          secondary: Color(0xFFFF5A1F),
-          surface: Color(0xFF121212),
-        ),
-      ),
+      theme: AppTheme.darkTheme,
       home: const HomeScreen(),
     );
   }

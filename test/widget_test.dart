@@ -5,12 +5,13 @@ import 'package:movie_watchlist_app/main.dart';
 
 void main() {
   testWidgets('App loads successfully', (WidgetTester tester) async {
-    dotenv.testLoad(fileInput: '''OMDB_API_KEY=test''');
+    dotenv.loadFromString(envString: 'OMDB_API_KEY=test_key');
     SharedPreferences.setMockInitialValues({});
 
     await tester.pumpWidget(const MovieWatchlistApp());
     await tester.pumpAndSettle();
 
     expect(find.text('Search for movies...'), findsOneWidget);
+    expect(find.text('Your Saved List'), findsOneWidget);
   });
 }
