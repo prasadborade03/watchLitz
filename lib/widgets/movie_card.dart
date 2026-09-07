@@ -107,31 +107,39 @@ class MovieCard extends StatelessWidget {
   /// Wrapped in GestureDetector with HitTestBehavior.opaque so taps
   /// are consumed by the icon and don't bubble up to the card's onTap.
   Widget _buildStateIcon() {
-    final Widget icon = Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: movie.isWatched ? const Color(0xFF4CAF50) : Colors.white,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            offset: const Offset(1, 1),
-            blurRadius: 3,
-          ),
-        ],
-      ),
-      child: movie.isWatched
-          ? const Icon(Icons.check, color: Colors.white, size: 16)
-          : const SizedBox(
-              width: 14,
-              height: 3,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Color(0xFFE53935),
-                  borderRadius: BorderRadius.all(Radius.circular(2)),
-                ),
-              ),
+    final bool watched = movie.isWatched;
+    final double circleSize = 25;
+
+    final Widget icon = SizedBox(
+      width: circleSize,
+      height: circleSize,
+      child: Container(
+        decoration: BoxDecoration(
+          color: watched ? const Color(0xFF4CAF50) : Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              offset: const Offset(1, 1),
+              blurRadius: 3,
             ),
+          ],
+        ),
+        child: Center(
+          child: watched
+              ? const Icon(Icons.check, color: Colors.white, size: 18)
+              : const SizedBox(
+                  width: 14,
+                  height: 3,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Color(0xFFE53935),
+                      borderRadius: BorderRadius.all(Radius.circular(2)),
+                    ),
+                  ),
+                ),
+        ),
+      ),
     );
 
     return Positioned(
